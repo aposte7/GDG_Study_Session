@@ -80,21 +80,26 @@ function TasksProvider({ children }) {
 
   useEffect(() => {
     async function fetchPopularMovies() {
+      console.log("searchQuery", searchQuery);
       dispatch({ type: "loading" });
+      let response = null;
       try {
-        const response = await fetch(
-          `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US&page=1`,
-        );
+        if (searchQuery.length < 3) {
+          response = await fetch(
+            `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US&page=1`,
+          );
+        } else {
+          response = await fetch(
+            `${BASE_URL}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(searchQuery)}&language=en-US&page=1`,
+          );
+        }
 
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
         const data = await response.json();
-
         console.log(data.results);
-        console.log(data);
-        console.log("ll");
 
         dispatch({ type: "movies/loaded", payload: data.results });
       } catch (error) {
@@ -103,14 +108,18 @@ function TasksProvider({ children }) {
       }
     }
     fetchPopularMovies();
-  }, []);
+  }, [searchQuery]);
 
+  const handleSearch = (query) => {
+    dispatch({ type: "search", payload: query });
+  };
   return (
     <MovieContext.Provider
       value={{
         movies,
         status,
         searchQuery,
+        handleSearch,
       }}
     >
       {children}
