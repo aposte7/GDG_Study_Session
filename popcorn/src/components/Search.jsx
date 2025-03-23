@@ -1,11 +1,12 @@
 import { UseMovie } from "../contexts/movie/useMovie";
 
 function Search() {
-  const { handleSearch } = UseMovie();
+  const { handleSearch, addToWatchList, movies } = UseMovie(); // Include `movies` here
 
   const handleInputChange = (e) => {
     handleSearch(e.target.value);
   };
+
   return (
     <form className="justify-self-center">
       <input

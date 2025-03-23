@@ -3,7 +3,7 @@ import MovieContext from "./Context";
 
 const initialState = {
   movies: [],
-  watchList: [],
+  watchList: JSON.parse(localStorage.getItem("watchList")) || [],
   status: {
     value: "initial" /**loading error ready */,
     message: "",
@@ -66,21 +66,35 @@ function reducer(state, action) {
         ...state,
         searchQuery: action.payload,
       };
-
+    case "watchList/add":
+      const updatedWatchList = [...state.watchList, action.payload];
+      localStorage.setItem("watchList", JSON.stringify(updatedWatchList));
+      return {
+        ...state,
+        watchList: updatedWatchList,
+      };
+    case "watchList/remove":
+      const filteredWatchList = state.watchList.filter(
+        (movie) => movie.id !== action.payload,
+      );
+      localStorage.setItem("watchList", JSON.stringify(filteredWatchList));
+      return {
+        ...state,
+        watchList: filteredWatchList,
+      };
     default:
       throw new Error("Unknown Action Type");
   }
 }
 
 function TasksProvider({ children }) {
-  const [{ movies, status, searchQuery }, dispatch] = useReducer(
+  const [{ movies, status, searchQuery, watchList }, dispatch] = useReducer(
     reducer,
     initialState,
   );
 
   useEffect(() => {
     async function fetchPopularMovies() {
-      console.log("searchQuery", searchQuery);
       dispatch({ type: "loading" });
       let response = null;
       try {
@@ -113,13 +127,25 @@ function TasksProvider({ children }) {
   const handleSearch = (query) => {
     dispatch({ type: "search", payload: query });
   };
+
+  const addToWatchList = (movie) => {
+    dispatch({ type: "watchList/add", payload: movie });
+  };
+
+  const removeFromWatchList = (movieId) => {
+    dispatch({ type: "watchList/remove", payload: movieId });
+  };
+
   return (
     <MovieContext.Provider
       value={{
         movies,
         status,
         searchQuery,
+        watchList,
         handleSearch,
+        addToWatchList,
+        removeFromWatchList,
       }}
     >
       {children}
